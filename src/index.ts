@@ -1,6 +1,6 @@
 import { extendConfig, extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
-import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
+import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from "hardhat/types";
 import path from "path";
 
 // This import is needed to let the TypeScript compiler know that it should include your type
@@ -45,6 +45,7 @@ extendConfig(
 );
 
 extendEnvironment((hre) => {
+  
   // We add a field to the Hardhat Runtime Environment here.
   // We use lazyObject to avoid initializing things until they are actually
   // needed.

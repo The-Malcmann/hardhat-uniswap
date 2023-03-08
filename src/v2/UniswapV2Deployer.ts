@@ -15,9 +15,9 @@ export class UniswapV2Deployer {
   private _weth?: Contract;
   private _tokens: Map<string, Contract>;
 
-  public deployer: SignerWithAddress;
+  public deployer?: SignerWithAddress;
 
-  constructor(_deployer: SignerWithAddress) {
+  constructor(_deployer?: SignerWithAddress) {
     this.deployer = _deployer;
     this._tokens = new Map()
   }
@@ -41,7 +41,7 @@ export class UniswapV2Deployer {
     };
   }
 
-  public async getWeth(signer: SignerWithAddress = this.deployer): Promise<Contract> {
+  public async getWeth(signer: SignerWithAddress): Promise<Contract> {
     if (!this._weth) {
       const { weth9 } = await deployWETH9(signer)
       this._weth = weth9;
@@ -49,7 +49,7 @@ export class UniswapV2Deployer {
     return this._weth;
   }
 
-  public async getFactory(signer: SignerWithAddress = this.deployer): Promise<Contract> {
+  public async getFactory(signer: SignerWithAddress): Promise<Contract> {
     if (!this._factory) {
       const { factory } = await deployFactory(signer, signer)
       this._factory = factory;
@@ -57,7 +57,7 @@ export class UniswapV2Deployer {
     return this._factory;
   }
 
-  public async getRouter(signer: SignerWithAddress = this.deployer): Promise<Contract> {
+  public async getRouter(signer: SignerWithAddress): Promise<Contract> {
     if (!this._router) {
       const { router } = await deployRouter(signer, await this.getFactory(signer), await this.getWeth(signer))
       this._router = router;
@@ -74,4 +74,5 @@ export class UniswapV2Deployer {
     return this._tokens.get(address);
   }
 
+  // public async addLiquidity(signer: SignerWithAddress, tokenA: )
 }
