@@ -65,14 +65,18 @@ export class UniswapV2Deployer {
     return this._router;
   }
 
-  public async createERC20(signer: SignerWithAddress, name: string, symbol: string): Promise<void> {
+  public async createERC20(signer: SignerWithAddress, name: string, symbol: string): Promise<Contract> {
     const { erc20 } = await CommonDeployers.deployERC20(signer, name, symbol);
     this._tokens.set(erc20.address, erc20);
+    return erc20;
   }
 
   public getERC20(address: string): Contract | undefined {
     return this._tokens.get(address);
   }
 
-  // public async addLiquidity(signer: SignerWithAddress, tokenA: )
+  public async addLiquidity(signer: SignerWithAddress, tokenA?: string, tokenB?: string, amountTokenA?: string, amountTokenB?: string) {
+    const router = await this.getRouter(signer)
+    // await router.
+  }
 }
