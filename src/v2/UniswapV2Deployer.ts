@@ -41,6 +41,11 @@ export class UniswapV2Deployer {
     };
   }
 
+  /**
+   * Returns the WETH contract
+   * @param signer 
+   * @returns 
+   */
   public async getWeth(signer: SignerWithAddress): Promise<Contract> {
     if (!this._weth) {
       const { weth9 } = await deployWETH9(signer)
@@ -77,6 +82,14 @@ export class UniswapV2Deployer {
 
   public async addLiquidity(signer: SignerWithAddress, tokenA?: string, tokenB?: string, amountTokenA?: string, amountTokenB?: string) {
     const router = await this.getRouter(signer)
-    // await router.
+    await router.addLiquidity(tokenA, tokenB, amountTokenA, amountTokenB, 1, 1, signer, 999999999);
   }
+
+  // Get LP amount in terms of $TOKEN
+  // Remove Liquidity
+  // Swap
+  // Swap ETH
+  // Get Quotes
+  // Get Value of LP
+  // Get Fees accrued from LP
 }
