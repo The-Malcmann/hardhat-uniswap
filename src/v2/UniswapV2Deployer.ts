@@ -5,7 +5,8 @@ import { ethers } from "hardhat";
 import deployFactory from "./deployers/deployFactory";
 import deployRouter from "./deployers/deployRouter";
 import deployWETH9 from "./deployers/deployWETH9";
-import Interface from "./Interface";
+import Interface from "./interfaces/Interface";
+import { LiquidityOptions, SwapExactTokensForTokensOptions, LibraryOptions, DeployOptions } from "../../types.d.ts";
 
 import { CommonDeployers } from "../common";
 
@@ -83,6 +84,7 @@ export class UniswapV2Deployer {
       require("@uniswap/v2-core/build/UniswapV2Pair.json")
         .abi,
       pairAddress
+
     );
     return pair;
   }
@@ -102,38 +104,39 @@ export class UniswapV2Deployer {
     await router.connect(signer).addLiquidity(tokenA, tokenB, amountTokenA, amountTokenB, 1, 1, (await signer.getAddress()), 9678825033);
   }
 
-  public async addLiquidityETH(signer: SignerWithAddress, token?: string, amountToken?: BigNumber) { 
+  public async addLiquidityETH(signer: SignerWithAddress, token?: string, amountToken?: BigNumber) {
     const router = await this.getRouter(signer)
     await router.addLiquidityETH(token, amountToken, 1, 1, (await signer.getAddress()), 9678825033);
   }
 
-  public async swapExactTokensForTokens(signer: SignerWithAddress, amountIn: Number, inputToken: String, outputToken: String) {
+  public async swapExactTokensForTokens(options: SwapExactTokensForTokensOptions) {
+    const router = await this.getRouter(options.signer)
+    options.outputToken
+    const path = [options.inputToken, options.outputToken]
+      const amountInEther = ethers.utils.parseEther(options.amountIn.toString());
+      await router.swapExactTokensForTokens(amountInEther, 1, path, (await options.signer.getAddress()), 9678825033)
+  }
+
+  // public async swapTokensForExactTokens(options: SwapOptions) {
+  //   const router = await this.getRouter(options.signer)
+  //   const path = [options.inputToken, options.outputToken]
+  //     const amountOutEther = ethers.utils.parseEther(options.amountOut.toString());
+  //     await router.swapTokensForExactTokens(amountOutEther, ethers.constants.MaxInt256, path, (await options.signer.getAddress()), 9678825033)
+  // }
+
+  public async removeLiquidity(signer: SignerWithAddress, tokenA: String, tokenB: String, amountLp: Number) {
     const router = await this.getRouter(signer)
-    const path = [inputToken, outputToken]
-    const amountInEther = ethers.utils.parseEther(amountIn.toString());
-    await router.swapExactTokensForTokens(amountInEther, 1, path, (await signer.getAddress()), 9678825033)
+    const liquidityEther = ethers.utils.parseEther(amountLp.toString())
+    await router.removeLiquidity(tokenA, tokenB, liquidityEther, 1, 1, (await signer.getAddress()), 9678825033)
   }
 
-  public async swapTokensForExactTokens(signer: SignerWithAddress, amountOut: Number, inputToken: String, outputToken: String) {
+  public async quote(signer: SignerWithAddress, tokenA: String, tokenB: String, amountA: Number) {
     const router = await this.getRouter(signer)
-    const path = [inputToken, outputToken]
-    const amountOutEther = ethers.utils.parseEther(amountOut.toString());
-    await router.swapTokensForExactTokens(amountOutEther, ethers.constants.MaxInt256, path, (await signer.getAddress()), 9678825033)
-  }
-
-  public async removeLiquidity(signer: SignerWithAddress, tokenA: String, tokenB: String, liquidity: Number) {
-    const router = await this.getRouter(signer) 
-    const liquidityEther = ethers.utils.parseEther(liquidity.toString())
-    await router.removeLiquidity(tokenA, tokenB, liquidityEther, 1, 1, (await signer.getAddress()),9678825033)
-  }
-
-  public async quote(signer: SignerWithAddress, amountA: Number, tokenA: String, tokenB: String) {
-    const router = await this.getRouter(signer) 
     const amountAEther = ethers.utils.parseEther(amountA.toString())
     const pair = await this.getPair(signer, tokenA, tokenB);
     let reserveA, reserveB, timestamp
     // Sort reserves with tokens
-    if(tokenA == await pair.token0()) {
+    if (tokenA == await pair.token0()) {
       [reserveA, reserveB, timestamp] = await pair.getReserves()
     } else {
       [reserveB, reserveA, timestamp] = await pair.getReserves()
@@ -143,31 +146,29 @@ export class UniswapV2Deployer {
     return quoteAmount
   }
 
-  public async getLPValueInTermsOfTokenA(signer: SignerWithAddress, tokenA: String, tokenB: String, liquidity: number) {
-    const router = await this.getRouter(signer) 
+  public async getLiquidityValueInTermsOfTokenA(signer: SignerWithAddress, tokenA: String, tokenB: String, amountLiquidity: number): Promise<Number> {
+    const router = await this.getRouter(signer)
     const pair = await this.getPair(signer, tokenA, tokenB);
 
     let reserveA, reserveB, timestamp
     // Sort reserves with tokens
-    if(tokenA == await pair.token0()) {
+    if (tokenA == await pair.token0()) {
       [reserveA, reserveB, timestamp] = await pair.getReserves()
     } else {
       [reserveB, reserveA, timestamp] = await pair.getReserves()
     }
     const tvl = reserveA * 2
-    const singleLp = tvl * Number(ethers.utils.parseEther("1"))/ (await pair.totalSupply())
+    const singleLp = tvl * Number(ethers.utils.parseEther("1")) / (await pair.totalSupply())
     console.log("tvl", tvl)
     console.log("singleLp:", singleLp)
-    return singleLp * liquidity
+    return singleLp * amountLiquidity;
 
   }
 
 
-  // Get LP amount in terms of $TOKEN
-  // Remove Liquidity
-  // Swap
-  // Swap ETH
-  // Get Quotes
-  // Get Value of LP
-  // Get Fees accrued from LP
+  // Test ETH Token
+  // Return Types,
+  // Atomic Tests
+  // Object param
+  // 
 }

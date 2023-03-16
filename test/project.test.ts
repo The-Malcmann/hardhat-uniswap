@@ -13,6 +13,9 @@ import { UniswapV2Deployer } from "../src/v2/UniswapV2Deployer";
 
 import { useEnvironment } from "./helpers";
 
+import { LiquidityOptions, SwapExactTokensForTokensOptions, LibraryOptions, DeployOptions } from "../types.d.ts";
+
+
 function eth(n: number): BigNumber {
   return utils.parseEther(n.toString());
 }
@@ -161,6 +164,7 @@ describe("Unit Tests", function () {
     describe("router functionality", function () {
       it("Should add liquidity", async function () {
         const [signer] = await this.hre.ethers.getSigners();
+  
         const v2Deployer = new UniswapV2Deployer();
         await v2Deployer.deploy(signer);
 
@@ -172,10 +176,15 @@ describe("Unit Tests", function () {
 
         await v2Deployer.addLiquidity(signer, test1.address, test2.address, AMOUNT_TOKEN, AMOUNT_TOKEN )
 
-
+        const swapOptions:SwapExactTokensForTokensOptions = {
+          signer: signer,
+          amountIn: 10,
+          inputToken: test1.address,
+          outputToken: test2.address,
+        }
         // await v2Deployer.addLiquidityETH(signer, test1.address, AMOUNT_TOKEN);
         const test1BalanceBeforeSwap = await test1.balanceOf(await signer.getAddress())
-        await v2Deployer.swapTokensForExactTokens(signer, 10, test1.address, test2.address);
+        await v2Deployer.swapExactTokensForTokens(swapOptions);
         const test1BalanceAfterSwap = await test1.balanceOf(await signer.getAddress())
         console.log("Balance Before Swap",ethers.utils.formatEther(test1BalanceBeforeSwap))
         console.log("Balance After Swap",ethers.utils.formatEther(test1BalanceAfterSwap))
@@ -187,9 +196,9 @@ describe("Unit Tests", function () {
         await pair.connect(signer).approve((await v2Deployer.getRouter(signer)).address, ethers.constants.MaxUint256)
         console.log("pairbalance", pairBalance)
         await v2Deployer.removeLiquidity(signer, test1.address, test2.address, 10)
-        console.log(ethers.utils.formatEther(await v2Deployer.quote(signer, 20, test1.address, test2.address)))
+        console.log(ethers.utils.formatEther(await v2Deployer.quote(signer, test1.address, test2.address, 20)))
 
-        console.log("Value of 10 LP in terms of test1", await v2Deployer.getLPValueInTermsOfTokenA(signer, test1.address, test2.address, 5))
+        console.log("Value of 5 LP in terms of test1", await v2Deployer.getLiquidityValueInTermsOfTokenA(signer, test1.address, test2.address, 5))
 
 
         // expect (Number(ethers.utils.formatEther(test1BalanceBeforeSwap))).to.be.eq((Number(ethers.utils.formatEther(test1BalanceAfterSwap)) + 10))

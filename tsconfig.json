@@ -18,6 +18,6 @@
     "./typechain",
     "./hardhat.config.ts",
     "./deploy"
-  ],
+, "types.d.ts.ts"  ],
   "files": ["./hardhat.config.ts"]
 }
