@@ -1,12 +1,13 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber, constants, Contract, ContractFactory, utils } from "ethers";
+//@ts-ignore
 import { ethers } from "hardhat";
 
 import deployFactory from "./deployers/deployFactory";
 import deployRouter from "./deployers/deployRouter";
 import deployWETH9 from "./deployers/deployWETH9";
 import Interface from "./interfaces/Interface";
-import { SwapExactTokensForTokensOptions, DeployOptions, AddLiquidityOptions, RemoveLiquidityOptions, QuoteOptions, SwapTokensForExactTokensOptions, GetLiquidityValueInTermsOfTokenAOptions } from "../../types.d.ts";
+import { SwapExactTokensForTokensOptions, DeployOptions, AddLiquidityOptions, RemoveLiquidityOptions, QuoteOptions, SwapTokensForExactTokensOptions, GetLiquidityValueInTermsOfTokenAOptions, RemoveLiquidityETHOptions, AddLiquidityETHOptions } from "../../types.d.ts";
 
 import { CommonDeployers } from "../common";
 
@@ -15,6 +16,7 @@ import {
   bytecode,
 } from "@uniswap/v2-core/build/UniswapV2Pair.json";
 import { remove } from "fs-extra";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export class UniswapV2Deployer {
   public Interface = Interface;
@@ -25,7 +27,7 @@ export class UniswapV2Deployer {
 
   public deployer?: SignerWithAddress;
 
-  constructor(_deployer?: SignerWithAddress) {
+  constructor( _deployer?: SignerWithAddress) {
     this.deployer = _deployer;
     this._tokens = new Map()
   }
@@ -81,6 +83,7 @@ export class UniswapV2Deployer {
   public async getPair(signer: SignerWithAddress, tokenA: String, tokenB: String) {
     const factory = await this.getFactory(signer);
     const pairAddress = await factory.getPair(tokenA, tokenB);
+    //@ts-ignore
     const pair = await ethers.getContractAt(
       require("@uniswap/v2-core/build/UniswapV2Pair.json")
         .abi,
@@ -102,14 +105,38 @@ export class UniswapV2Deployer {
 
   public async addLiquidity(options: AddLiquidityOptions) {
     const router = await this.getRouter(options.signer)
-    const amountAEther = await ethers.utils.parseEther(options.amountTokenA.toString())
-    const amountBEther = await ethers.utils.parseEther(options.amountTokenB.toString())
+    let amountAEther = options.amountTokenA;
+    let amountBEther = options.amountTokenB;
+    if(typeof options.amountTokenA == "number") {
+      amountAEther = await ethers.utils.parseEther(options.amountTokenA.toString())
+    }
+    if(typeof options.amountTokenB == "number") {
+      amountBEther = await ethers.utils.parseEther(options.amountTokenB.toString())
+    }
     await router.connect(options.signer).addLiquidity(options.tokenA, options.tokenB, amountAEther, amountBEther, 1, 1, (await options.signer.getAddress()), 9678825033);
   }
 
-  public async addLiquidityETH(signer: SignerWithAddress, token?: string, amountToken?: BigNumber) {
-    const router = await this.getRouter(signer)
-    await router.addLiquidityETH(token, amountToken, 1, 1, (await signer.getAddress()), 9678825033);
+  public async addLiquidityETH(options: AddLiquidityETHOptions) {
+    const router = await this.getRouter(options.signer)
+    // if(options.amountEth)
+    let amountTokenEther= await ethers.utils.parseEther(options.amountToken.toString())
+    let amountETHEther = await ethers.utils.parseEther(options.amountETH.toString())
+    await router.connect(options.signer).addLiquidityETH(options.token, amountTokenEther, 1, 1, (await options.signer.getAddress()), 9678825033, {value: amountETHEther});
+  }
+
+  public async removeLiquidity(options: RemoveLiquidityOptions) {
+    const router = await this.getRouter(options.signer)
+    let liquidityEther = options.amountLiquidity;
+    if(typeof options.amountLiquidity == "number") {
+      liquidityEther = ethers.utils.parseEther(options.amountLiquidity.toString())
+    } 
+    await router.removeLiquidity(options.tokenA, options.tokenB, liquidityEther, 1, 1, (await options.signer.getAddress()), 9678825033)
+  }
+
+  public async removeLiquidityETH(options: RemoveLiquidityETHOptions) {
+    const router = await this.getRouter(options.signer)
+    const liquidityEther = ethers.utils.parseEther(options.amountLiquidity.toString())
+    await router.removeLiquidityETH(options.token, liquidityEther, 1, 1, (await options.signer.getAddress()), 9678825033)
   }
 
   public async swapExactTokensForTokens(options: SwapExactTokensForTokensOptions) {
@@ -127,13 +154,7 @@ export class UniswapV2Deployer {
     await router.swapTokensForExactTokens(amountOutEther, ethers.constants.MaxInt256, path, (await options.signer.getAddress()), 9678825033)
   }
 
-  public async removeLiquidity(options: RemoveLiquidityOptions) {
-    const router = await this.getRouter(options.signer)
-    const liquidityEther = ethers.utils.parseEther(options.amountLiquidity.toString())
-    await router.removeLiquidity(options.tokenA, options.tokenB, liquidityEther, 1, 1, (await options.signer.getAddress()), 9678825033)
-  }
-
-  public async quote(options: QuoteOptions): Promise<Number> {
+  public async quote(options: QuoteOptions): Promise<BigNumber> {
     const router = await this.getRouter(options.signer)
     const amountAEther = ethers.utils.parseEther(options.amountA.toString())
     const pair = await this.getPair(options.signer, options.tokenA, options.tokenB);
@@ -149,7 +170,7 @@ export class UniswapV2Deployer {
     return quoteAmount
   }
 
-  public async getLiquidityValueInTermsOfTokenA(options: GetLiquidityValueInTermsOfTokenAOptions): Promise<Number> {
+  public async getLiquidityValueInTermsOfTokenA(options: GetLiquidityValueInTermsOfTokenAOptions): Promise<BigNumber> {
     const router = await this.getRouter(options.signer)
     const pair = await this.getPair(options.signer, options.tokenA, options.tokenB);
 
@@ -161,14 +182,13 @@ export class UniswapV2Deployer {
       [reserveB, reserveA, timestamp] = await pair.getReserves()
     }
     const tvl = reserveA * 2
-    const singleLp = tvl * Number(ethers.utils.parseEther("1")) / (await pair.totalSupply())
+    const singleLp = tvl * ethers.utils.parseEther("1") / (await pair.totalSupply())
     console.log("tvl", tvl)
     console.log("singleLp:", singleLp)
-    return singleLp * options.amountLiquidity;
+    
+    return BigNumber.from((singleLp * options.amountLiquidity).toString());
   }
 
-
-  // Test ETH Token
   // Return Types,
   // Atomic Tests
   // Object param

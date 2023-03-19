@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumber } from "ethers";
+import { BigNumber, Signer } from "ethers";
 
 
 export type DeployOptions = {
@@ -11,24 +11,21 @@ export interface AddLiquidityOptions {
     signer: SignerWithAddress;
     tokenA: string;
     tokenB: string;
-    amountTokenA: number;
-    amountTokenB: number;
+    amountTokenA: number | BigNumber;
+    amountTokenB: number | BigNumber;
 }
 
 export interface RemoveLiquidityOptions {
     signer: SignerWithAddress;
     tokenA: string;
     tokenB: string;
-    amountLiquidity: number;
+    amountLiquidity: number | BigNumber;
 }
 
 export interface SwapExactTokensForTokensOptions {
     signer: SignerWithAddress;
     amountIn: number;
     inputToken: string;
-    /**
-     * @note Fuck u
-     */
     outputToken: string;
 }
 
@@ -50,5 +47,16 @@ export interface GetLiquidityValueInTermsOfTokenAOptions {
     signer: SignerWithAddress;
     tokenA: String;
     tokenB: String;
+    amountLiquidity: number;
+}
+export interface AddLiquidityETHOptions {
+    signer: SignerWithAddress;
+    token: string;
+    amountToken: number;
+    amountETH: number;
+}
+export interface RemoveLiquidityETHOptions {
+    signer: SignerWithAddress;
+    token: string;
     amountLiquidity: number;
 }
