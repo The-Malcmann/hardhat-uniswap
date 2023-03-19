@@ -15,7 +15,7 @@ import { useEnvironment } from "./helpers";
 
 import { SwapExactTokensForTokensOptions, DeployOptions, SwapTokensForExactTokensOptions, AddLiquidityOptions, RemoveLiquidityOptions, QuoteOptions, GetLiquidityValueInTermsOfTokenAOptions, AddLiquidityETHOptions } from "../types.d.ts";
 //@ts-ignore
-import {ethers} from "hardhat";
+import { ethers } from "hardhat";
 
 function eth(n: number): BigNumber {
   return utils.parseEther(n.toString());
@@ -113,7 +113,7 @@ describe("Integration Tests", function () {
   //   });
 });
 //@ts-ignore
-describe("Unit Tests", function (hre: any) {
+describe("Unit Tests", function () {
   let AMOUNT_TOKEN: number;
   let AMOUNT_WETH9: number;
   describe("UniswapV2Deployer", function () {
@@ -122,12 +122,12 @@ describe("Unit Tests", function (hre: any) {
       AMOUNT_TOKEN = 1000;
     });
     useEnvironment("hardhat-project");
-    console.log("ETHERS", hre)
-
+    
+    
     describe("Deployment", function () {
       it("Should deploy WETH9", async function () {
         const [signer] = await ethers.getSigners();
-        const deployer = new UniswapV2Deployer();
+        const deployer = new UniswapV2Deployer(this.hre);
         const { weth9 } = await deployer.deploy(signer);
         assert.equal(await weth9.name(), "Wrapped Ether");
         const provider = await ethers.getDefaultProvider();
@@ -137,21 +137,21 @@ describe("Unit Tests", function (hre: any) {
 
       it("Should deploy Factory", async function () {
         const [signer] = await ethers.getSigners();
-        const deployer = new UniswapV2Deployer();
+        const deployer = new UniswapV2Deployer(this.hre);
         const { factory } = await deployer.deploy(signer);
         assert.equal(await factory.feeToSetter(), signer.address);
       });
 
       it("Should deploy Router", async function () {
         const [signer] = await ethers.getSigners();
-        const deployer = new UniswapV2Deployer();
+        const deployer = new UniswapV2Deployer(this.hre);
         const { router, factory, weth9 } = await deployer.deploy(signer);
         assert.equal(await router.factory(), factory.address);
         assert.equal(await router.WETH(), weth9.address);
       });
 
       it("Should have Interface", async function () {
-        const deployer = new UniswapV2Deployer();
+        const deployer = new UniswapV2Deployer(this.hre);
         expect(deployer.Interface.IUniswapV2Pair.abi).to.eql(
           IUniswapV2PairBuild.abi
         );
@@ -170,14 +170,14 @@ describe("Unit Tests", function (hre: any) {
       it("should create an ERC20", async function () {
         const [signer] = await ethers.getSigners();
 
-        const v2Deployer = new UniswapV2Deployer();
+        const v2Deployer = new UniswapV2Deployer(this.hre);
         await v2Deployer.deploy(signer);
         const test1 = await v2Deployer.createERC20(signer, "Test1", "TEST1")
         expect(await test1.name()).to.eq("Test1")
       });
 
       it("should get pair", async function () {
-        const { v2Deployer, test1, test2, pair } = await addLiquidity();
+        const { v2Deployer, test1, test2, pair } = await addLiquidity(this.hre);
         if (await pair.token0() == test1.address) {
           expect(await pair.token0()).to.eq(test1.address)
           expect(await pair.token1()).to.eq(test2.address)
@@ -192,7 +192,7 @@ describe("Unit Tests", function (hre: any) {
 
       it("should quote", async function () {
         const [signer] = await ethers.getSigners();
-        const { v2Deployer, test1, test2, pair } = await addLiquidity();
+        const { v2Deployer, test1, test2, pair } = await addLiquidity(this.hre);
         const quoteOptions: QuoteOptions = {
           signer: signer,
           tokenA: test1.address,
@@ -204,7 +204,7 @@ describe("Unit Tests", function (hre: any) {
 
       it("should get value of LP in terms of token A", async function () {
         const [signer] = await ethers.getSigners();
-        const { v2Deployer, test1, test2, pair } = await addLiquidity();
+        const { v2Deployer, test1, test2, pair } = await addLiquidity(this.hre);
         const getLiquidityValueInTermsOfTokenAOptions: GetLiquidityValueInTermsOfTokenAOptions = {
           signer: signer,
           tokenA: test1.address,
@@ -218,12 +218,12 @@ describe("Unit Tests", function (hre: any) {
     describe("Router functionality", function () {
       it("Should add liquidity", async function () {
         const [signer] = await ethers.getSigners();
-        const { v2Deployer, test1, test2, pair } = await addLiquidity();
+        const { v2Deployer, test1, test2, pair } = await addLiquidity(this.hre);
         expect(Number(ethers.utils.formatEther(await pair.balanceOf(await signer.getAddress())))).to.be.greaterThan(0)
       })
 
       it("should swapExactTokensForTokens", async function () {
-        const { v2Deployer, test1, test2, pair } = await addLiquidity();
+        const { v2Deployer, test1, test2, pair } = await addLiquidity(this.hre);
         const [signer] = await ethers.getSigners();
         const test1BalanceBeforeSwap = await test1.balanceOf(await signer.getAddress())
         const swapOptions: SwapExactTokensForTokensOptions = {
@@ -246,7 +246,7 @@ describe("Unit Tests", function (hre: any) {
       })
 
       it("should swapTokensForExactTokens", async function () {
-        const { v2Deployer, test1, test2, pair } = await addLiquidity();
+        const { v2Deployer, test1, test2, pair } = await addLiquidity(this.hre);
         const [signer] = await ethers.getSigners();
         const test2BalanceBeforeSwap = await test2.balanceOf(await signer.getAddress())
         const swapOptions: SwapTokensForExactTokensOptions = {
@@ -262,7 +262,7 @@ describe("Unit Tests", function (hre: any) {
 
       it("should remove liquidity", async function () {
         const [signer] = await ethers.getSigners();
-        const { v2Deployer, test1, test2, pair } = await addLiquidity();
+        const { v2Deployer, test1, test2, pair } = await addLiquidity(this.hre);
         const pairBalance = await pair.balanceOf(await signer.getAddress())
         await pair.connect(signer).approve((await v2Deployer.getRouter(signer)).address, ethers.constants.MaxUint256)
         const removeLiquidityOptions: RemoveLiquidityOptions = {
@@ -278,7 +278,7 @@ describe("Unit Tests", function (hre: any) {
       it("should add liquidity ETH", async function () {
         const signers = await ethers.getSigners();
         const signer = signers[0]
-        const v2Deployer = new UniswapV2Deployer();
+        const v2Deployer = new UniswapV2Deployer(this.hre);
         const balance = await ethers.provider.getBalance(await signer.getAddress());
         const test1 = await v2Deployer.createERC20(signer, "Test1", "TEST1")
         await test1.connect(signer).approve((await v2Deployer.getRouter(signer)).address, ethers.constants.MaxUint256)
@@ -298,10 +298,10 @@ describe("Unit Tests", function (hre: any) {
   })
 });
 
-async function addLiquidity() {
+async function addLiquidity(hre) {
   const [signer] = await ethers.getSigners();
 
-  const v2Deployer = new UniswapV2Deployer();
+  const v2Deployer = new UniswapV2Deployer(hre);
   await v2Deployer.deploy(signer);
 
   const test1 = await v2Deployer.createERC20(signer, "Test1", "TEST1")

@@ -1860,6 +1860,11 @@
     "qs" "^6.9.4"
     "zksync-web3" "^0.8.1"
 
+"hardhat-ethers@^1.0.1":
+  "integrity" "sha512-zS7VPEwlYwIbMZG/PTDM9pF1cagmxNGxA6hLCOFQt/wYPDWgw5eUQNchi9fRbd+k6ZIgm3UypsjK60Qqlx7Ogw=="
+  "resolved" "https://registry.npmjs.org/hardhat-ethers/-/hardhat-ethers-1.0.1.tgz"
+  "version" "1.0.1"
+
 "hardhat@^2.0.0":
   "integrity" "sha512-BdsXC1CFJQDJKmAgCwpmGhFuVU6dcqlgMgT0Kg/xmFAFVugkpYu6NRmh4AaJ3Fah0/BR9DOR4XgQGIbg4eon/Q=="
   "resolved" "https://registry.npmjs.org/hardhat/-/hardhat-2.11.2.tgz"
