@@ -17,7 +17,8 @@
     "./src",
     "./typechain",
     "./hardhat.config.ts",
-    "./deploy"
-, "types.d.ts.ts"  ],
+    "./deploy",
+ "types.d.ts.ts",
+"./scripts"  ],
   "files": ["./hardhat.config.ts"]
 }
