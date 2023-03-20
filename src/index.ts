@@ -8,7 +8,7 @@ import path from "path";
 import "./v2/type-extensions";
 import "./v3/type-extensions"
 import { UniswapV2Deployer } from "./v2/UniswapV2Deployer";
-// import { UniswapV3Deployer } from "./v3/UniswapV3Deployer";
+import { UniswapV3Deployer } from "./v3/UniswapV3Deployer";
 
 
 extendConfig(
@@ -50,5 +50,5 @@ extendEnvironment((hre) => {
   // We use lazyObject to avoid initializing things until they are actually
   // needed.
   hre.UniswapV2Deployer = lazyObject(() => new UniswapV2Deployer(hre));
-  // hre.UniswapV3Deployer = lazyObject(() => new UniswapV3Deployer());
+  hre.UniswapV3Deployer = lazyObject(() => new UniswapV3Deployer(hre));
 });
