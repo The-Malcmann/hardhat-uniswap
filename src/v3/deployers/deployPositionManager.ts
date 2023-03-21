@@ -9,7 +9,6 @@ async function deployPositionManager(
   tokenDescriptor: Contract
 ) {
   const PositionManager = new ContractFactory(abi, bytecode, signer);
-  console.log("descriptor address", tokenDescriptor.address)
   const positionManager = await PositionManager.deploy(factory.address, weth9.address, tokenDescriptor.address);
   await positionManager.deployed();
   return { positionManager, PositionManager };
