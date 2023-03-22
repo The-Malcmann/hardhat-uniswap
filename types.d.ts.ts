@@ -1,6 +1,6 @@
 // V2 TYPES
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumber, Signer } from "ethers";
+import { BigNumber, Bytes, Signer } from "ethers";
 
 export type DeployOptions = {
     tWETH: boolean;
@@ -62,13 +62,34 @@ export interface RemoveLiquidityETHOptions {
 }
 
 //V3 Types
-export interface ExactInputOptions {
+export interface ExactInputSingleOptions {
     signer: SignerWithAddress;
     tokenIn: string;
     tokenOut: string;
     fee: number;
-    amountIn: string;
+    amountIn: number;
 }
+
+export interface ExactInputOptions {
+    signer: SignerWithAddress,
+    path: Array<string | number>,
+    amountIn: number
+}
+
+export interface ExactOutputSingleOptions {
+    signer: SignerWithAddress,
+    tokenIn: string;
+    tokenOut: string;
+    fee: number;
+    amountOut: number;
+}
+
+export interface ExactOutputOptions {
+    signer: SignerWithAddress;
+    path: Array<string | number>;
+    amountOut: number;
+}
+
 
 export interface MintOptions {
     signer: SignerWithAddress;
@@ -77,4 +98,23 @@ export interface MintOptions {
     fee: number;
     amount0Desired: number;
     amount1Desired: number;
+    price: number;
+}
+
+export interface CollectOptions {
+    signer: SignerWithAddress;
+    tokenId: Number;
+}
+
+export interface IncreaseLiquidityOptions {
+    signer: SignerWithAddress;
+    tokenId: Number;
+    amount0Desired: number;
+    amount1Desired: number;
+}
+
+export interface DecreaseLiquidityOptions {
+    signer: SignerWithAddress;
+    tokenId: Number;
+    liquidity: number;
 }
